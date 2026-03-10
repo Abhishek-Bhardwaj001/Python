@@ -1,10 +1,12 @@
 import os
+from typing import List
 from langchain_community.document_loaders import TextLoader, DirectoryLoader
 from langchain_text_splitters import CharacterTextSplitter
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_chroma import Chroma
+from langchain_core.documents import Document
 
-def load_documents(docs_path="docs"):
+def load_documents(docs_path: str = "docs") -> List[Document]:
     "Function for loading data files"
     print(f"Loading documents from {docs_path}")
 
@@ -31,7 +33,11 @@ def load_documents(docs_path="docs"):
     return documents
 
 
-def split_documents(documents, chunk_size=1000, chunk_overlap=200):
+def split_documents(
+    documents: List[Document],
+    chunk_size: int = 1000,
+    chunk_overlap: int = 200,
+) -> List[Document]:
     "Split documents into chunks"
     text_splitter = CharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
 
@@ -45,7 +51,7 @@ def split_documents(documents, chunk_size=1000, chunk_overlap=200):
     return chunks
 
 
-def create_vector_store(chunks, db_directory="db/chroma_db"):
+def create_vector_store(chunks: List[Document], db_directory: str = "db/chroma_db") -> Chroma:
     "Create vector store"
     embedding_model = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
 
@@ -60,7 +66,7 @@ def create_vector_store(chunks, db_directory="db/chroma_db"):
     return vector_store
 
 
-def main():
+def main() -> Chroma:
     "Main ingestion pipeline"
     docs_path = "docs"
     db_directory = "db/chroma_db"
