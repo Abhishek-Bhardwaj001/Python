@@ -1,5 +1,11 @@
+from typing import List, Union, Any, Callable
 from langchain_core.messages import SystemMessage, HumanMessage
-def format_query(user_query,chat_history,chatbot):
+
+def format_query(
+    user_query: str,
+    chat_history: str,
+    chatbot: Any,
+) -> str:
     if chat_history:
         print("Chat history found")
         message = [SystemMessage(content="""
@@ -25,7 +31,11 @@ def format_query(user_query,chat_history,chatbot):
         search_query = user_query
     return search_query
 
-def format_message(user_query,chat_history,combined_context):
+def format_message(
+    user_query: str,
+    chat_history: str,
+    combined_context: str,
+) -> List[Any]:
     if chat_history:
         print("Chat history found")
 
