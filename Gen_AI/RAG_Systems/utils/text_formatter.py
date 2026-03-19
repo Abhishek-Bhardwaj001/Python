@@ -1,5 +1,5 @@
 from typing import List, Union, Any, Callable
-from langchain_core.messages import SystemMessage, HumanMessage
+from langchain_core.messages import AIMessage, SystemMessage, HumanMessage
 
 def format_query(
     user_query: str,
@@ -54,3 +54,9 @@ def format_message(
                                     Context: {combined_context}
                                     """)]
     return message
+
+def format_history(chat_history: List[Union[HumanMessage, AIMessage]]) -> str:
+    return "\n".join(
+        f"{'User' if isinstance(msg, HumanMessage) else 'Assistant'}: {msg.content}"
+        for msg in chat_history
+    )
