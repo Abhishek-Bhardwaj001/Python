@@ -5,7 +5,7 @@ import os
 from typing import Any, List, Callable, Union
 from langchain_groq import ChatGroq
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
-from utils.text_formatter import format_query, format_message
+from utils.text_formatter import format_query, format_message, format_history
 
 load_dotenv()
 LLM_SECRETS = os.getenv("GROQ_API")
@@ -24,28 +24,21 @@ llm_chatbot = ChatGroq(model='llama-3.1-8b-instant',api_key = LLM_SECRETS)
 print(f"user Query Example:How much did microsoft pay to acquire github?")
 chat_history: List[Union[HumanMessage, AIMessage]] = []
 
-def initiate_chat(
+def ragbot(
     user_query: str,
     chat_history: List[Union[HumanMessage, AIMessage]],
     retriever: Any,
     chatbot: Any,
     format_query: Callable[[str, str, Any], str],
-    format_message: Callable[[str, str, str], List[Any]],
+    format_message: Callable[[str, str, str], List[Union[SystemMessage, HumanMessage]]],
 ) -> None:
-    history_text = "\n".join(
-        f"{'User' if isinstance(msg, HumanMessage) else 'Assistant'}: {msg.content}"
-        for msg in chat_history
-    )
+    history_text = format_history(chat_history)
     search_query = format_query(user_query, history_text, chatbot)
-    print(f"re-writen Query:{search_query}")
     relevant_docs = retriever.invoke(search_query)
     combined_context = "\n\n".join(doc.page_content for doc in relevant_docs)
     message = format_message(search_query, history_text, combined_context)
     response = chatbot.invoke(message)
-    print(f"chatbot Response:\n{response.content}")
-    chat_history.append(HumanMessage(content=user_query))
-    chat_history.append(AIMessage(content=response.content))
-    chat_history[:] = chat_history[-30:]
+    return response.content.strip()
 
 def main() -> None:    
     while True:
@@ -54,7 +47,10 @@ def main() -> None:
             print("See you, take care!")
             break
         else:
-            initiate_chat(user_query, chat_history, retriever, llm_chatbot, format_query, format_message)
-
+            ai_answer = ragbot(user_query, chat_history, retriever, llm_chatbot, format_query, format_message)
+            print(f"chatbot Response:\n{ai_answer}")
+            chat_history.append(HumanMessage(content=user_query))
+            chat_history.append(AIMessage(content=ai_answer))
+            chat_history[:] = chat_history[-30:]
 if __name__=="__main__":
       main()       
