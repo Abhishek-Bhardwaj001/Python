@@ -6,3 +6,7 @@
 /*.env
 
 test*
+__pycache__/   
+*.pyc
+*.pyo
+__pycache__
