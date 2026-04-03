@@ -1,4 +1,4 @@
-from typing import List, Union, Any, Callable
+from typing import List, Union, Any
 from langchain_core.messages import AIMessage, SystemMessage, HumanMessage
 
 def format_query(
@@ -31,7 +31,7 @@ def format_query(
         search_query = user_query
     return search_query
 
-def format_message(
+def format_chat_history_message(
     user_query: str,
     chat_history: str,
     combined_context: str,
