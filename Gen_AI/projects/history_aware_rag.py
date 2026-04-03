@@ -5,7 +5,7 @@ import os
 from typing import Any, List, Callable, Union
 from langchain_groq import ChatGroq
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
-from utils.text_formatter import format_query, format_message, format_history
+from utils.text_formatter import format_query, format_chat_history_message, format_history
 
 load_dotenv()
 LLM_SECRETS = os.getenv("GROQ_API")
@@ -30,13 +30,13 @@ def ragbot(
     retriever: Any,
     chatbot: Any,
     format_query: Callable[[str, str, Any], str],
-    format_message: Callable[[str, str, str], List[Union[SystemMessage, HumanMessage]]],
+    format_chat_history_message: Callable[[str, str, str], List[Union[SystemMessage, HumanMessage]]],
 ) -> None:
     history_text = format_history(chat_history)
     search_query = format_query(user_query, history_text, chatbot)
     relevant_docs = retriever.invoke(search_query)
     combined_context = "\n\n".join(doc.page_content for doc in relevant_docs)
-    message = format_message(search_query, history_text, combined_context)
+    message = format_chat_history_message(search_query, history_text, combined_context)
     response = chatbot.invoke(message)
     return response.content.strip()
 
@@ -47,7 +47,7 @@ def main() -> None:
             print("See you, take care!")
             break
         else:
-            ai_answer = ragbot(user_query, chat_history, retriever, llm_chatbot, format_query, format_message)
+            ai_answer = ragbot(user_query, chat_history, retriever, llm_chatbot, format_query, format_chat_history_message)
             print(f"chatbot Response:\n{ai_answer}")
             chat_history.append(HumanMessage(content=user_query))
             chat_history.append(AIMessage(content=ai_answer))

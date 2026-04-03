@@ -1,5 +1,6 @@
 .env
 *.env
-
+.py311_venv
+.venv
 /.env
 /*.env

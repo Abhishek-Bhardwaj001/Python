@@ -7,7 +7,7 @@ from langchain_chroma import Chroma
 from langchain_core.documents import Document
 
 
-def load_documents(docs_path: str = "docs") -> List[Document]:
+def load_text_documents(docs_path: str = "docs",verbose=False) -> List[Document]:
     "Function for loading data files"
     print(f"Loading documents from {docs_path}")
 
@@ -25,11 +25,11 @@ def load_documents(docs_path: str = "docs") -> List[Document]:
 
     if len(documents) == 0:
         raise FileNotFoundError(f"No documents found in {docs_path}.")
-
-    for i, doc in enumerate(documents[:2]):
-        print(f"\nDocument {i+1}:")
-        print(f"  Source: {doc.metadata['source']}")
-        print(f"  Content length: {len(doc.page_content)}")
+    if verbose:
+        for i, doc in enumerate(documents[:2]):
+            print(f"\nDocument {i+1}:")
+            print(f"  Source: {doc.metadata['source']}")
+            print(f"  Content length: {len(doc.page_content)}")
 
     return documents
 
@@ -37,6 +37,7 @@ def split_documents(
     documents: List[Document],
     chunk_size: int = 1000,
     chunk_overlap: int = 200,
+    verbose=False
 ) -> List[Document]:
     "Split documents into chunks"
     text_splitter = CharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
@@ -44,13 +45,16 @@ def split_documents(
     chunks = text_splitter.split_documents(documents)
 
     if chunks:
-        for i, chunk in enumerate(chunks[:5]):
-            print(f"Chunk source: {chunk.metadata['source']}")
-        print(f"Total chunks: {len(chunks)}")
+        if verbose:
+            for i, chunk in enumerate(chunks[:5]):
+                print(f"Chunk source: {chunk.metadata['source']}")
+            print(f"Total chunks: {len(chunks)}")
 
-    return chunks
+        return chunks
+    else:
+        raise FileExistsError("No Chunks Created for Current Loaded Documents")
 
-def create_vector_store(chunks: List[Document], db_directory: str = "db/chroma_db") -> Chroma:
+def create_vector_store(chunks: List[Document], db_directory: str = "db/chroma_db",verbose=False) -> Chroma:
     "Create vector store"
     embedding_model = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
 
@@ -60,6 +64,6 @@ def create_vector_store(chunks: List[Document], db_directory: str = "db/chroma_d
         persist_directory=db_directory,
         collection_metadata={"hnsw:space": "cosine"}
     )
-
-    print(f"Vector store created at {db_directory}")
+    if verbose:
+        print(f"Vector store created at {db_directory}")
     return vector_store
