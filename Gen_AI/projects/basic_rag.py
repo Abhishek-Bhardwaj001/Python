@@ -21,7 +21,6 @@ llm_chat = ChatGroq(model = 'llama-3.1-8b-instant',api_key=api_secret)
 # ============ Data Ingestion =================================
 def data_ingestion():
     documents = load_text_documents(docs_path=docs_path,verbose=True)
-    # print(documents)
     chunks = split_documents(documents)
     vector_store = create_vector_store(chunks,new_db_path,verbose=True)
     return vector_store

@@ -180,26 +180,6 @@ def convert_to_datetime(modified_at_str):
         return dt
     return None
 
-def remove_row(document_url, source_table_name,source_url_column):
-    """
-    Delete rows from the specified Unity Catalog table where the file name matches the input filename.
-
-    Args:
-        Document_URL (str): The document URL to match for deletion.
-        source_table (str): The table name from which to delete the row.
-
-    Returns:
-        None
-    """
-    spark =SparkSession.builder.getOrCreate()
-    query = f"""
-    DELETE FROM {source_table_name}
-    WHERE LOWER({source_url_column}) =  '{document_url.lower()}'
-    """
-    try:
-        spark.sql(query)
-    except Exception as e:
-        print(f"{RED}[ERROR]: Failed to delete rows from table: {e}{RESET}")
 
 def  pandas_dtype_to_spark(dtype):
     """
@@ -226,73 +206,71 @@ def  pandas_dtype_to_spark(dtype):
     else:
         return StringType()
 
-def update_row(url, source_table, new_metadata):
-    """
-    Updates the doc_metadata field in the specified table for the given document URL.
 
-    Args:
-        url (str): The document URL to update.
-        source_table (str): The table name to update.
-        new_metadata (dict): The new metadata to set.
+def merge_documents(processed_documents: list[dict]):
+    
+    full_text = ""
+    metadata_tracker = []
+    current_position = 0
 
-    Returns:
-        None
-    """
-    # Convert new_metadata dict to a JSON string and escape single quotes
-    spark =SparkSession.builder.getOrCreate()
-    metadata_json = json.dumps(new_metadata, default=str).replace("'", "''")
-    query = f"""
-        UPDATE {source_table}
-        SET doc_metadata = {metadata_json}
-        WHERE LOWER(Doc_url) = '{url.lower()}'
-    """
-    try:
-        spark.sql(query)
-    except Exception as e:
-        print(f"Failed to update row for {url}: {e}")
+    for doc in processed_documents:
+        
+        content = doc["content"]
+        metadata = doc["metadata"]
 
-def update_metadata(vectorized_data, metadata):
-    """
-    Compares metadata DataFrame with vectorized_data and returns rows with updated metadata.
+        start = current_position
+        end = start + len(content)
 
-    Args:
-        vectorized_data (pd.DataFrame): DataFrame containing existing vectorized data.
-        metadata (pd.DataFrame): DataFrame containing new metadata.
+        full_text += content + "\n\n"
 
-    Returns:
-        pd.DataFrame: DataFrame of rows that need metadata updates.
-    """
-    update_load = []
-    update_cntr = 0
-    for index, row in metadata.iterrows():
-        matches = vectorized_data[vectorized_data['File_Name'] == row['Name']]
-        if not matches.empty:
-            source_row = matches.iloc[0]
-            if pd.notnull(row['Modified']) and pd.notnull(source_row['metadata_modified']):
-                if row['Modified'] > source_row['metadata_modified']:
-                    update_cntr += 1
-                    update_load.append({
-                        'source_url': source_row['Doc_url'],
-                        'new_metadata': row.drop('weburl').to_dict()
-                    })
-    print(f"Found Files with Updated Metadata: {update_cntr}")
-    return pd.DataFrame(update_load)
+        metadata_tracker.append({
+            "start": start,
+            "end": end,
+            "metadata": metadata
+        })
 
-def reverse_incremental_load(vi_data,source_url_column,all_sites,sharepoint_connector_obj):
-    removed_cntr = 0
-    data = []
-    for site_name in all_sites:
-        print('=' * 20, f"Processing site: {site_name}", '=' * 20)
-        target_data = vi_data[vi_data['site_name'] == site_name]
-        sharepoint_data = sharepoint_connector_obj.get_site_documents(site_name)
-        for document_url in target_data[source_url_column].unique():
-            if document_url not in sharepoint_data['webUrl'].values:
-                data.append({'webUrl':document_url,
-                              'Sharepoint_Site':site_name})
-                removed_cntr += 1
-    print(f"URL's Not in Sharepoint Site: {removed_cntr}")
-    return pd.DataFrame(data)
+        current_position = len(full_text)
 
+    return full_text, metadata_tracker
+
+def assign_metadata_to_chunks(chunks, metadata_tracker):
+    
+    chunk_documents = []
+    cursor = 0
+
+    for chunk in chunks:
+        
+        chunk_start = cursor
+        chunk_end = cursor + len(chunk)
+
+        chunk_metadata = []
+
+        for meta in metadata_tracker:
+            
+            if not (chunk_end < meta["start"] or chunk_start > meta["end"]):
+                chunk_metadata.append(meta["metadata"])
+
+        chunk_documents.append({
+            "content": chunk,
+            "metadata": chunk_metadata
+        })
+
+        cursor += len(chunk)
+
+    return chunk_documents
+
+def convert_langchain_doc(chunked_documents):
+    documents = [
+        Document(
+            page_content=doc["content"],
+            metadata={
+                "element_metadata": json.dumps(doc["metadata"])
+            }
+        )
+        for doc in chunked_documents
+    ]
+    return documents
+    
 if __name__ == "__main__":
     # Entry point for script execution
     pass

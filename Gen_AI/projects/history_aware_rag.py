@@ -5,21 +5,24 @@ import os
 from typing import Any, List, Callable, Union
 from langchain_groq import ChatGroq
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
-from utils.text_formatter import format_query, format_chat_history_message, format_history
-
+from Gen_AI.rag_systems.utils.text_formatter import format_history
+from Gen_AI.llm_prompts import chat_history_rag_prompt
+from Gen_AI.config import db_directory
+from Gen_AI.rag_systems.bots.task_agents import format_query_bot
 load_dotenv()
 LLM_SECRETS = os.getenv("GROQ_API")
 
-db_directory = "db/chroma_db"
+print(f"Database DIR:{db_directory}")
+new_db_path = str(db_directory / "text_data_vectors")
+
 embedding_model = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
 
-db = Chroma(persist_directory=db_directory,
+db = Chroma(persist_directory=new_db_path,
             embedding_function=embedding_model,
             collection_metadata={"hnsw:space":"cosine"})
 
 
 retriever = db.as_retriever(search_kwargs = {"k":5})
-
 llm_chatbot = ChatGroq(model='llama-3.1-8b-instant',api_key = LLM_SECRETS) 
 print(f"user Query Example:How much did microsoft pay to acquire github?")
 chat_history: List[Union[HumanMessage, AIMessage]] = []
@@ -34,6 +37,7 @@ def ragbot(
 ) -> None:
     history_text = format_history(chat_history)
     search_query = format_query(user_query, history_text, chatbot)
+    print(f"Reformatted Search Query: {search_query}")
     relevant_docs = retriever.invoke(search_query)
     combined_context = "\n\n".join(doc.page_content for doc in relevant_docs)
     message = format_chat_history_message(search_query, history_text, combined_context)
@@ -47,7 +51,7 @@ def main() -> None:
             print("See you, take care!")
             break
         else:
-            ai_answer = ragbot(user_query, chat_history, retriever, llm_chatbot, format_query, format_chat_history_message)
+            ai_answer = ragbot(user_query, chat_history, retriever, llm_chatbot, format_query_bot, chat_history_rag_prompt)
             print(f"chatbot Response:\n{ai_answer}")
             chat_history.append(HumanMessage(content=user_query))
             chat_history.append(AIMessage(content=ai_answer))
