@@ -33,7 +33,7 @@ import subprocess
 import sys
 # OLE files (older Office formats)
 import olefile
-from Python.Gen_AI.rag_systems.utils.data_transform_helpers import install_libreoffice
+from Gen_AI.rag_systems.utils.data_transform_helpers import install_libreoffice
 class TextExtractor:
     def __init__(self):
         pass
