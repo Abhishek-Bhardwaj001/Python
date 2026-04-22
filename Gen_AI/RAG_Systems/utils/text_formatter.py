@@ -8,22 +8,27 @@ def format_query(
 ) -> str:
     if chat_history:
         print("Chat history found")
-        message = [SystemMessage(content="""
-                    Your task is to decide whether the user's question depends on previous conversation context.
+        message = f"""
+                    You are a query rewriting assistant.
 
-                    Rules:
-                    - If the question is a follow-up that depends on chat history, rewrite it into a standalone question.
-                    - If the question is already standalone, return it EXACTLY as written.
-                    - Do not use outside knowledge.
-                    - Do not make guess.
+                    Task:
+                    - If the question depends on previous conversation → rewrite it into a standalone query with no past conversation dependency.
+                    - If the question is already standalone → return it EXACTLY as is.
 
-                    Do NOT paraphrase standalone questions.
+                    STRICT RULES:
+                    - Do NOT paraphrase standalone questions.
+                    - Do NOT add extra words.
+                    - Only return the final query.
 
-                    Return ONLY the final question text."""),
-                HumanMessage(content = f""" Use the chat history below and rewrite user question.
-                                            Question: {user_query}
-                                            Chat History: {chat_history}
-                                            """)]
+                    Chat History:
+                    {history_text}
+
+                    User Question:
+                    {user_query}
+
+                    Final Query:
+                    """
+
         reformat_result = chatbot.invoke(message)
         search_query = reformat_result.content.strip()
     else:
