@@ -1,7 +1,6 @@
 import os
 import sys
 from pathlib import Path
-print(os.getcwd())
 
 repo_root = Path(__file__).resolve().parents[0] #0 for RAG_Systems and 1 for Gen_AI
 
