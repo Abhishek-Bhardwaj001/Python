@@ -4,8 +4,12 @@
 .venv
 /.env
 /*.env
-
+Gen_AI/docs/*
+Gen_AI/learning_code/
+Gen_AI/rag_systems/vector_db
 test*
+learning_code/*
+docs/*
 __pycache__/   
 *.pyc
 *.pyo
