@@ -20,4 +20,4 @@ db_directory = REPO_ROOT / "rag_systems" / "vector_db"
 db_directory.mkdir(parents=True, exist_ok=True)
 
 docs_path = REPO_ROOT/ "docs"
-pdf_path = REPO_ROOT / "docs" / "attention-is-all-you-need.pdf"
+pdf_path = REPO_ROOT / "docs" / "Multi_Agent_System_Theory.pdf"
