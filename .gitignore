@@ -1,5 +1,7 @@
 .env
 *.env
+AIRA/AIRA_env
+dev
 .py311_venv
 .venv
 /.env
