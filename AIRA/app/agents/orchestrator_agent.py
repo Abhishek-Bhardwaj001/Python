@@ -9,12 +9,10 @@ class AIRA():
         load_dotenv()
         self.orchestrator_llm = self._llm()
     
-    def invoke(self,query):
+    def invoke(self, messages):
         print("Entered Invoke function for Orchestrator A.I.R.A thinking...")
-        message = [SystemMessage(content=orchestrator_prompt),
-        HumanMessage(content=query)
-        ]
-        response = self.orchestrator_llm.invoke(message)
+        full_messages = [SystemMessage(content=orchestrator_prompt)] + list(messages)
+        response = self.orchestrator_llm.invoke(full_messages)
         return response.content
 
     def _llm(self):

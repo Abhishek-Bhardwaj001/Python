@@ -1,4 +1,4 @@
-### ================== A.I.R.A: AI Response Agent [V:1.0.0]: Baisc Voice Bot =====================
+### ================== A.I.R.A: AI Response Agent [V:1.0.0]: Basic Voice Bot =====================
 
 ===================================Intitial Setup (22/08/26)=======================================
 1. Started With writing controllers.voice_controller.py
@@ -12,6 +12,8 @@
 3. Orchestrator_agent.py : AIRA Brain (Default: Groq)
 4. tts_services.py : For Text to Speach Functionality (pyttsx3)
 
+Day 2 [23/08/26]:
+Added Session Memory for AIRA: The bot looks to be working fine, however i got difficulty in connecting the Orchestrator class with LangGraph workflow specially the messages and memory State
 
 Learnings:
 In a class You declare the variable local to method if it will change on its every call or declare it in the constructor if its going ot be static per object call.

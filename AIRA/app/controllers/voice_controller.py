@@ -2,6 +2,7 @@ from app.services.listener import Listen
 from app.services.stt_services import Stt
 from app.agents.orchestrator_agent import AIRA
 from app.services.tts_services import Tts
+from app.agents.workflow import Workflow
 
 class VoiceController():
     def __init__(self,listen_duration,listen_fs):
@@ -9,7 +10,7 @@ class VoiceController():
         self.listener = Listen(listen_duration,listen_fs)
         self.lst_duration = listen_duration
         self.lst_fs = listen_fs
-        self.llm_agent = AIRA()
+        self.llm_agent = Workflow()
         self.tts = Tts()
     
     def run(self):
@@ -41,8 +42,8 @@ class VoiceController():
     def _get_agent_response(self,text):
         """Convert the LLM text in audio"""
 
-        return self.llm_agent.invoke(text)
+        return self.llm_agent.run(text)
 
     def _speak(self,llm_response):
         """load and speak the audi converted text"""
-        return self.tts.speak(llm_response)
+        return self.tts.speak(llm_response[:200]) # Remove later
