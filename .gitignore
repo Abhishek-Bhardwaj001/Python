@@ -1,6 +1,8 @@
 .env
 *.env
 AIRA/AIRA_env
+Assets
+assets
 dev
 .py311_venv
 .venv
