@@ -2,7 +2,7 @@
 *.env
 AIRA/AIRA_env
 Assets
-assets
+AIRA/assets
 dev
 .py311_venv
 .venv
