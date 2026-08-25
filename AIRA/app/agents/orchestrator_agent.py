@@ -16,11 +16,13 @@ class AIRA():
         return response.content
 
     def _llm(self):
-        try:
-            if self.ai_engine == "groq":
-                my_secret = os.getenv("GROQ_API")
-                return ChatGroq(model = 'openai/gpt-oss-20b',api_key = my_secret)
-            else:
-                print("The Only Supported Orchestrator Model right now is GROQ")
-        except Exception as e:
-            print(f"API Error: {e}")
+        if self.ai_engine != "groq":
+            raise ValueError(
+                f"Unsupported orchestrator engine '{self.ai_engine}'. Only 'groq' is supported right now."
+            )
+
+        my_secret = os.getenv("GROQ_API")
+        if not my_secret:
+            raise RuntimeError("GROQ_API is not set. Add it to your .env before starting AIRA.")
+
+        return ChatGroq(model='openai/gpt-oss-20b', api_key=my_secret, max_tokens=250)

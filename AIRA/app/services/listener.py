@@ -4,9 +4,10 @@ import numpy as np
 import librosa
 
 class Listen():
-    def __init__(self,duration,fs):
+    def __init__(self, duration, fs, device=None):
         self.duration = duration
         self.fs = fs
+        self.device = device
 
     def run(self):
        print("Invoked Listen Class")
@@ -15,7 +16,12 @@ class Listen():
     def _sd_listener(self):
         print()
         print(f"Listening through {sd.query_devices()}...")
-        audio = sd.rec(int(self.duration * self.fs), samplerate=self.fs, channels=1,device=9)
+        audio = sd.rec(
+            int(self.duration * self.fs),
+            samplerate=self.fs,
+            channels=1,
+            device=self.device,
+        )
         sd.wait()
         print("Done")
         audio = audio.flatten()               # You need to flatten your audio becuase thats the input whisper expects while working with audio files
